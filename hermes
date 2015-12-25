@@ -1,0 +1,47 @@
+#!/bin/sh
+
+hermes_home=~/.hermes/
+database_name=${hermes_home}.db
+
+
+hermes_default () {
+	if [ -f $database_name ]; then
+		echo "Hermes exists at: "
+		cat $database_name
+	else
+		echo "Not found. Please \`hermes init\`"
+	fi
+}
+
+hermes_ls() {
+	ls ${hermes_home}/scripts
+}
+
+hermes_init () {
+	echo -n "Git URL: "
+	read database_new
+
+	if [ -f "$database_name" ]
+	then
+		echo "DB already exists. Please remove with \`hermes close\`"
+	fi
+
+	git ls-remote "$database_new" &>/dev/null
+	if [ "$?" -ne 0 ]; then
+		echo "[ERROR] Unable to read from '$database_new'"
+		exit 1;
+	fi
+
+	# save it
+	mkdir -p ~/.hermes
+	echo $database_new >> ~/.hermes/.db
+
+	echo "Create new heremes!"
+}
+
+case $1 in
+	init) hermes_init ;;
+	ls) hermes_ls ;;
+	*) hermes_default
+esac
+
