@@ -16,49 +16,55 @@ hermes_default () {
 	fi
 }
 
-hermes_subl () {
-	subl -n ${hermes_home}
-}
-
 hermes_ls() {
 	ls ${hermes_home}/scripts
 }
 
 hermes_run() {
-	# make sure it can run
-	sc_name=$1
-	chmod +x ${hermes_home}scripts/$sc_name
-	shift
-	(cd /; .${hermes_home}scripts/$sc_name $@)
+	# find file
+	for d in ${hermes_home}*/scripts/ ; do
+		if [[ -f ${d}${1} ]]; then
+			hermes_file=${d}${1}
+		fi
+	done
+
+	if [[ -f ${hermes_file} ]]; then
+		# make sure it can run
+		# echo ${hermes_file}
+		chmod +x ${hermes_file}
+		shift
+		(cd /; .${hermes_file} $@)
+	else
+		echo "Script {${1}} is not found";
+	fi
 }
 
-hermes_init () {
-	echo -n "Git URL: "
-	read database_new
+hermes_status() {
+	echo "nada"
+}
 
-	if [ -f "$database_name" ]
-	then
-		echo "DB already exists. Please remove with \`hermes close\`"
-	fi
-
-	git ls-remote "$database_new" &>/dev/null
+hermes_use () {
+	git ls-remote "$2" &>/dev/null
 	if [ "$?" -ne 0 ]; then
 		echo "[ERROR] Unable to read from '$database_new'"
 		exit 1;
 	fi
 
-	# save it
-	mkdir -p ~/.hermes
-	echo $database_new >> ~/.hermes/.db
+	if [ $# -gt 2 ]; then
+		gitname=$3
+	else 
+		gitbase=`basename $2`
+		gitname="${gitbase%.*}"
+	fi
 
-	echo "Create new heremes!"
+	git clone $2 ${hermes_home}$gitname
 }
 
 case $1 in
-	init) hermes_init ;;
 	ls) hermes_ls ;;
 	run) shift; hermes_run $@;;
-	subl) hermes_subl ;;
+	status) hermes_status ;;
+	use) hermes_use $@ ;;
 	*) hermes_default $@
 esac
 
