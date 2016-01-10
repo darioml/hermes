@@ -17,7 +17,14 @@ hermes_default () {
 }
 
 hermes_ls() {
-	ls ${hermes_home}/scripts
+	# find file
+	for d in ${hermes_home}*/scripts/ ; do
+		echo "================"
+		echo `basename $(dirname $d)`
+		echo "================"
+		ls -1 $d
+	done
+	echo 
 }
 
 hermes_run() {
